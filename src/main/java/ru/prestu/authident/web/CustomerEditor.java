@@ -11,8 +11,8 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.prestu.authident.model.entities.Customer;
-import ru.prestu.authident.model.repositories.CustomerRepository;
+import ru.prestu.authident.domain.model.entities.Customer;
+import ru.prestu.authident.domain.repositories.CustomerRepository;
 
 /**
  * A simple example to introduce building forms. As your real application is probably much

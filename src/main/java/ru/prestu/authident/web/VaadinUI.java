@@ -7,8 +7,8 @@ import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import ru.prestu.authident.model.entities.Customer;
-import ru.prestu.authident.model.repositories.CustomerRepository;
+import ru.prestu.authident.domain.model.entities.Customer;
+import ru.prestu.authident.domain.repositories.CustomerRepository;
 
 @SpringUI
 public class VaadinUI extends UI {
