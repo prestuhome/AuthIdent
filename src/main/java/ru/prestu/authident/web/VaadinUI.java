@@ -47,9 +47,7 @@ public class VaadinUI extends UI {
         filter.addValueChangeListener(e -> listCustomers(e.getValue()));
 
         // Connect selected Customer to editor or hide if none is selected
-        grid.asSingleSelect().addValueChangeListener(e -> {
-            editor.editCustomer(e.getValue());
-        });
+        grid.asSingleSelect().addValueChangeListener(e -> editor.editCustomer(e.getValue()));
 
         // Instantiate and edit new Customer the new button is clicked
         addNewBtn.addClickListener(e -> editor.editCustomer(new Customer("", "")));
