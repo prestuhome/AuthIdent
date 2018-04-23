@@ -3,6 +3,8 @@ package ru.prestu.authident.domain.model.entities;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "books")
@@ -16,12 +18,9 @@ public class Book {
     @NotNull
     @Size(max = 1024)
     private String name;
-
-    @OneToOne
-    @JoinTable(name = "book_vector",
-            joinColumns = @JoinColumn(name = "book_id"),
-            inverseJoinColumns = @JoinColumn(name = "vector_id"))
-    private Vector vector;
+    @ElementCollection
+    @Column(name = "book_info")
+    private List<Double> bookInfo = new ArrayList<>(20);
 
     public Book() {
     }
@@ -33,7 +32,6 @@ public class Book {
     public Book(Author author, String name, Vector vector) {
         this.author = author;
         this.name = name;
-        this.vector = vector;
     }
 
     public Long getId() {
@@ -56,12 +54,12 @@ public class Book {
         this.name = name;
     }
 
-    public Vector getVector() {
-        return vector;
+    public List<Double> getBookInfo() {
+        return bookInfo;
     }
 
-    public void setVector(Vector vector) {
-        this.vector = vector;
+    public void setBookInfo(List<Double> bookInfo) {
+        this.bookInfo = bookInfo;
     }
 
     @Override
@@ -81,6 +79,6 @@ public class Book {
 
     @Override
     public String toString() {
-        return (author != null ? author.toString() + ", " : "") + name;
+        return (author != null ? author.toString() + ", " : "") + "\"" + name + "\"";
     }
 }

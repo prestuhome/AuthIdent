@@ -23,84 +23,84 @@ import ru.prestu.authident.domain.repositories.CustomerRepository;
  * forms - less code, better UX. See e.g. AbstractForm in Viritin
  * (https://vaadin.com/addon/viritin).
  */
-@SpringComponent
-@UIScope
+//@SpringComponent
+//@UIScope
 public class CustomerEditor extends VerticalLayout {
 
-    private final CustomerRepository repository;
-    /* Fields to edit properties in Customer entity */
-    TextField firstName = new TextField("First name");
-    TextField lastName = new TextField("Last name");
-    /* Action buttons */
-    Button save = new Button("Save", FontAwesome.SAVE);
-    Button cancel = new Button("Cancel");
-    Button delete = new Button("Delete", FontAwesome.TRASH_O);
-    CssLayout actions = new CssLayout(save, cancel, delete);
-    Binder<Customer> binder = new Binder<>(Customer.class);
-    /**
-     * The currently edited customer
-     */
-    private Customer customer;
-
-    @Autowired
-    public CustomerEditor(CustomerRepository repository) {
-        this.repository = repository;
-
-        addComponents(firstName, lastName, actions);
-
-        // bind using naming convention
-        binder.bindInstanceFields(this);
-
-        // Configure and style components
-        setSpacing(true);
-        actions.setStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-        save.setStyleName(ValoTheme.BUTTON_PRIMARY);
-        save.setClickShortcut(ShortcutAction.KeyCode.ENTER);
-
-        // wire action buttons to save, delete and reset
-        save.addClickListener(e -> repository.save(customer));
-        delete.addClickListener(e -> repository.delete(customer));
-        cancel.addClickListener(e -> editCustomer(customer));
-        setVisible(false);
-    }
-
-    public final void editCustomer(Customer c) {
-        if (c == null) {
-            setVisible(false);
-            return;
-        }
-        final boolean persisted = c.getId() != null;
-        if (persisted) {
-            // Find fresh entity for editing
-            customer = repository.findOne(c.getId());
-        } else {
-            customer = c;
-        }
-        cancel.setVisible(persisted);
-
-        // Bind customer properties to similarly named fields
-        // Could also use annotation or "manual binding" or programmatically
-        // moving values from fields to entities before saving
-        binder.setBean(customer);
-
-        setVisible(true);
-
-        // A hack to ensure the whole form is visible
-        save.focus();
-        // Select all text in firstName field automatically
-        firstName.selectAll();
-    }
-
-    public void setChangeHandler(ChangeHandler h) {
-        // ChangeHandler is notified when either save or delete
-        // is clicked
-        save.addClickListener(e -> h.onChange());
-        delete.addClickListener(e -> h.onChange());
-    }
-
-    public interface ChangeHandler {
-
-        void onChange();
-    }
+//    private final CustomerRepository repository;
+//    /* Fields to edit properties in Customer entity */
+//    TextField firstName = new TextField("First name");
+//    TextField lastName = new TextField("Last name");
+//    /* Action buttons */
+//    Button save = new Button("Save", FontAwesome.SAVE);
+//    Button cancel = new Button("Cancel");
+//    Button delete = new Button("Delete", FontAwesome.TRASH_O);
+//    CssLayout actions = new CssLayout(save, cancel, delete);
+//    Binder<Customer> binder = new Binder<>(Customer.class);
+//    /**
+//     * The currently edited customer
+//     */
+//    private Customer customer;
+//
+//    @Autowired
+//    public CustomerEditor(CustomerRepository repository) {
+//        this.repository = repository;
+//
+//        addComponents(firstName, lastName, actions);
+//
+//        // bind using naming convention
+//        binder.bindInstanceFields(this);
+//
+//        // Configure and style components
+//        setSpacing(true);
+//        actions.setStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
+//        save.setStyleName(ValoTheme.BUTTON_PRIMARY);
+//        save.setClickShortcut(ShortcutAction.KeyCode.ENTER);
+//
+//        // wire action buttons to save, delete and reset
+//        save.addClickListener(e -> repository.save(customer));
+//        delete.addClickListener(e -> repository.delete(customer));
+//        cancel.addClickListener(e -> editCustomer(customer));
+//        setVisible(false);
+//    }
+//
+//    public final void editCustomer(Customer c) {
+//        if (c == null) {
+//            setVisible(false);
+//            return;
+//        }
+//        final boolean persisted = c.getId() != null;
+//        if (persisted) {
+//            // Find fresh entity for editing
+//            customer = repository.findOne(c.getId());
+//        } else {
+//            customer = c;
+//        }
+//        cancel.setVisible(persisted);
+//
+//        // Bind customer properties to similarly named fields
+//        // Could also use annotation or "manual binding" or programmatically
+//        // moving values from fields to entities before saving
+//        binder.setBean(customer);
+//
+//        setVisible(true);
+//
+//        // A hack to ensure the whole form is visible
+//        save.focus();
+//        // Select all text in firstName field automatically
+//        firstName.selectAll();
+//    }
+//
+//    public void setChangeHandler(ChangeHandler h) {
+//        // ChangeHandler is notified when either save or delete
+//        // is clicked
+//        save.addClickListener(e -> h.onChange());
+//        delete.addClickListener(e -> h.onChange());
+//    }
+//
+//    public interface ChangeHandler {
+//
+//        void onChange();
+//    }
 
 }

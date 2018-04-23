@@ -6,7 +6,7 @@ CREATE TABLE authors
   patronymic VARCHAR(1024) DEFAULT ''
 );
 
-CREATE TABLE authors
+CREATE TABLE books
 (
   id         BIGSERIAL NOT NULL PRIMARY KEY,
   first_name VARCHAR(1024) DEFAULT '',

@@ -16,13 +16,13 @@ public class VaadinUI extends UI {
     final Grid<Customer> grid;
     final TextField filter;
     private final CustomerRepository repo;
-    private final CustomerEditor editor;
+   // private final CustomerEditor editor;
     private final Button addNewBtn;
 
     @Autowired
     public VaadinUI(CustomerRepository repo, CustomerEditor editor) {
         this.repo = repo;
-        this.editor = editor;
+        //this.editor = editor;
         this.grid = new Grid<>(Customer.class);
         this.filter = new TextField();
         this.addNewBtn = new Button("New customer", FontAwesome.PLUS);
@@ -32,7 +32,7 @@ public class VaadinUI extends UI {
     protected void init(VaadinRequest request) {
         // build layout
         HorizontalLayout actions = new HorizontalLayout(filter, addNewBtn);
-        VerticalLayout mainLayout = new VerticalLayout(actions, grid, editor);
+        VerticalLayout mainLayout = new VerticalLayout(actions, grid/*, editor*/);
         setContent(mainLayout);
 
         grid.setHeight(300, Unit.PIXELS);
@@ -47,16 +47,16 @@ public class VaadinUI extends UI {
         filter.addValueChangeListener(e -> listCustomers(e.getValue()));
 
         // Connect selected Customer to editor or hide if none is selected
-        grid.asSingleSelect().addValueChangeListener(e -> editor.editCustomer(e.getValue()));
+        //grid.asSingleSelect().addValueChangeListener(e -> editor.editCustomer(e.getValue()));
 
         // Instantiate and edit new Customer the new button is clicked
-        addNewBtn.addClickListener(e -> editor.editCustomer(new Customer("", "")));
+        //addNewBtn.addClickListener(e -> editor.editCustomer(new Customer("", "")));
 
         // Listen changes made by the editor, refresh data from backend
-        editor.setChangeHandler(() -> {
-            editor.setVisible(false);
-            listCustomers(filter.getValue());
-        });
+//        editor.setChangeHandler(() -> {
+//            editor.setVisible(false);
+//            listCustomers(filter.getValue());
+//        });
 
         // Initialize listing
         listCustomers(null);

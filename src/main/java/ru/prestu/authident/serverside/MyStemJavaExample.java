@@ -19,7 +19,7 @@ public class MyStemJavaExample {
         final Iterable<Info> result =
                 JavaConversions.asJavaIterable(
                         mystemAnalyzer
-                                .analyze(Request.apply("И вырвал грешный мой язык"))
+                                .analyze(Request.apply("И вырвал грешный мой язык. Как дела?"))
                                 .info()
                                 .toIterable());
 
