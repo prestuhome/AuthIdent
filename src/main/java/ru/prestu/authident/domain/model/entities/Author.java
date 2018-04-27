@@ -21,7 +21,7 @@ public class Author {
     @Size(max = 1024)
     private String patronymic;
 
-    protected Author() {
+    public Author() {
     }
 
     public Author(String firstName, String lastName, String patronymic) {

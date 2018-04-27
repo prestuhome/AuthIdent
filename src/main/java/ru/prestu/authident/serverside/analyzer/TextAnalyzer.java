@@ -1,6 +1,5 @@
 package ru.prestu.authident.serverside.analyzer;
 
-import com.google.common.base.CharMatcher;
 import ru.prestu.authident.serverside.analyzer.elements.Paragraph;
 import ru.prestu.authident.serverside.analyzer.elements.Sentence;
 
@@ -32,7 +31,7 @@ public class TextAnalyzer {
         File file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource("idiot.txt")).getFile());
 
         AtomicInteger counter = new AtomicInteger();
-        Files.lines(Paths.get("C:\\tools\\test.txt"), StandardCharsets.UTF_8).forEach(
+        Files.lines(Paths.get("C:\\Users\\prest\\tmp\\Тургенев  Иван. Муму - royallib.ru.txt"), StandardCharsets.UTF_8).forEach(
                 paragraph -> {
                     if (!paragraph.isEmpty() && counter.get() < 1000) {
                         //System.out.println(counter.incrementAndGet() + ": " + paragraph);
@@ -101,14 +100,8 @@ public class TextAnalyzer {
 
     public static void main(String[] args) throws IOException {
         TextAnalyzer analyzer = new TextAnalyzer();
-        Files.lines(Paths.get("C:\\tools\\test.txt"), Charset.forName("windows-1251")).forEach(
-                paragraph -> {
-                    if (!paragraph.isEmpty()) {
-                        paragraph = analyzer.normalize(paragraph);
-                        System.out.println(paragraph);
-                        System.out.println(analyzer.getIndexOfReplicaEnd(paragraph));
-                    }
-                }
+        Files.lines(Paths.get("C:\\Users\\prest\\tmp\\Тургенев  Иван. Муму - royallib.ru.txt"), StandardCharsets.UTF_8).forEach(
+                System.out::println
         );
     }
 

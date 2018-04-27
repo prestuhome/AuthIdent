@@ -18,9 +18,6 @@ public class Book {
     @NotNull
     @Size(max = 1024)
     private String name;
-    @ElementCollection
-    @Column(name = "book_info")
-    private List<Double> bookInfo = new ArrayList<>(20);
 
     public Book() {
     }
@@ -52,14 +49,6 @@ public class Book {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<Double> getBookInfo() {
-        return bookInfo;
-    }
-
-    public void setBookInfo(List<Double> bookInfo) {
-        this.bookInfo = bookInfo;
     }
 
     @Override
