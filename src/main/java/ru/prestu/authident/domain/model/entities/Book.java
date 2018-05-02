@@ -1,14 +1,17 @@
 package ru.prestu.authident.domain.model.entities;
 
+import org.apache.commons.math3.ml.clustering.Clusterable;
+import ru.prestu.authident.serverside.clustering.statistic.Statistical;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "books")
-public class Book {
+public class Book implements Clusterable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,6 +21,8 @@ public class Book {
     @NotNull
     @Size(max = 1024)
     private String name;
+    @ElementCollection
+    private List<Double> bookInfo;
 
     public Book() {
     }
@@ -26,7 +31,7 @@ public class Book {
         this.name = name;
     }
 
-    public Book(Author author, String name, Vector vector) {
+    public Book(Author author, String name) {
         this.author = author;
         this.name = name;
     }
@@ -51,19 +56,32 @@ public class Book {
         this.name = name;
     }
 
+    public List<Double> getBookInfo() {
+        return bookInfo;
+    }
+
+    public void setBookInfo(List<Double> bookInfo) {
+        this.bookInfo = bookInfo;
+    }
+
+    @Override
+    public double[] getPoint() {
+        double[] points = new double[bookInfo.size()];
+        for(int i = 0; i < bookInfo.size(); i++) points[i] = bookInfo.get(i);
+        return points;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Book book = (Book) o;
-
-        return id != null ? id.equals(book.id) : book.id == null;
+        return Objects.equals(id, book.id);
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return Objects.hash(id);
     }
 
     @Override

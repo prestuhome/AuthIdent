@@ -3,6 +3,7 @@ package ru.prestu.authident.domain.model.entities;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Objects;
 
 @Entity
 @Table(name = "authors")
@@ -22,12 +23,6 @@ public class Author {
     private String patronymic;
 
     public Author() {
-    }
-
-    public Author(String firstName, String lastName, String patronymic) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.patronymic = patronymic;
     }
 
     public Long getId() {
@@ -62,15 +57,13 @@ public class Author {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Author author = (Author) o;
-
-        return id != null ? id.equals(author.id) : author.id == null;
+        return Objects.equals(id, author.id);
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return Objects.hash(id);
     }
 
     @Override

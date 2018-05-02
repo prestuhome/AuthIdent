@@ -1,0 +1,5 @@
+@import "../valo/valo";
+
+@mixin authident {
+  @include valo;
+}

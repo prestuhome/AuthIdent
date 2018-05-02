@@ -1,5 +1,7 @@
 package ru.prestu.authident.web;
 
+import com.vaadin.annotations.Theme;
+import com.vaadin.annotations.Title;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ErrorHandler;
 import com.vaadin.server.VaadinRequest;
@@ -8,15 +10,17 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.prestu.authident.domain.model.entities.Author;
+import ru.prestu.authident.domain.model.entities.Book;
 import ru.prestu.authident.domain.repositories.AuthorRepository;
+import ru.prestu.authident.domain.repositories.BookRepository;
+import ru.prestu.authident.serverside.analyzer.TextAnalyzer;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 @SpringUI
+@Theme("authident")
+@Title("Authident")
 public class VaadinUI extends UI {
 
     private final Upload fileUploader;
@@ -34,9 +38,10 @@ public class VaadinUI extends UI {
     private final Label resultLabel;
 
     private final AuthorRepository authorRepository;
+    private final BookRepository bookRepository;
 
     @Autowired
-    public VaadinUI(AuthorRepository authorRepository, AuthorEditor authorEditor) {
+    public VaadinUI(AuthorRepository authorRepository, BookRepository bookRepository, AuthorEditor authorEditor) {
         fileUploader = new Upload();
         workingSpace = new VerticalLayout();
         bookNameField = new TextField("Название книги");
@@ -49,6 +54,7 @@ public class VaadinUI extends UI {
         resultLabel = new Label();
         this.authorEditor = authorEditor;
         this.authorRepository = authorRepository;
+        this.bookRepository = bookRepository;
     }
 
     @Override
@@ -60,6 +66,11 @@ public class VaadinUI extends UI {
         buttonsLayout.setSpacing(true);
         workingSpace.setSpacing(true);
         mainLayout.setSpacing(true);
+
+        Button button = new Button("Подготовка");
+        button.addStyleName("hider");
+        button.setWidth(100, Unit.PERCENTAGE);
+        mainLayout.addComponent(button);
 
         UploadReceiver receiver = new UploadReceiver();
         fileUploader.setReceiver(receiver);
@@ -84,17 +95,22 @@ public class VaadinUI extends UI {
 
         addNewAuthorButton.addClickListener((Button.ClickListener) event -> authorEditor.editAuthor(new Author()));
         startButton.addClickListener(event -> {
+
+            Book book = new Book();
+            TextAnalyzer analyzer = new TextAnalyzer();
             try {
-                resultLabel.setValue(Files.lines(Paths.get("C:\\Users\\prest\\tmp\\" + fileName), StandardCharsets.UTF_8).findFirst().get());
-            } catch (UncheckedIOException e) {
-                if (e.getMessage().equals("java.nio.charset.MalformedInputException: Input length = 1")) {
-                    Notifications.show("Неверная кодировка", "Выберите текстовый файл в формате txt (кодировка UTF-8)", Notifications.SMALL_WINDOW);
-                    fileName = "";
-                    update();
-                }
+                book.setBookInfo(analyzer.analyze("C:\\Users\\prest\\tmp\\" + fileName));
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            book.setAuthor(authorSelector.getValue());
+            book.setName(bookNameField.getValue());
+            Book book1 = bookRepository.save(book);
+            StringBuilder result = new StringBuilder();
+            for (Double d: book1.getBookInfo()) {
+                result.append(d).append(", ");
+            }
+            resultLabel.setValue(result.toString());
         });
         buttonsLayout.addComponent(addNewAuthorButton);
         buttonsLayout.addComponent(startButton);
