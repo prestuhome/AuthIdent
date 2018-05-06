@@ -1,5 +1,7 @@
 package ru.prestu.authident.web;
 
+import com.vaadin.addon.charts.Chart;
+import com.vaadin.addon.charts.model.*;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.icons.VaadinIcons;
@@ -7,10 +9,13 @@ import com.vaadin.server.ErrorHandler;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.math3.ml.clustering.Cluster;
+import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.prestu.authident.domain.model.entities.Author;
-import ru.prestu.authident.domain.model.entities.Book;
+import ru.prestu.authident.domain.model.Author;
+import ru.prestu.authident.domain.model.Book;
 import ru.prestu.authident.domain.repositories.AuthorRepository;
 import ru.prestu.authident.domain.repositories.BookRepository;
 import ru.prestu.authident.serverside.analyzer.TextAnalyzer;
@@ -20,39 +25,33 @@ import java.util.List;
 
 @SpringUI
 @Theme("authident")
-@Title("Authident")
+@Title("AuthIdent")
 public class VaadinUI extends UI {
 
-    private final Upload fileUploader;
-    private String fileName = "";
-
-    private final TextField bookNameField;
-    private final ComboBox<Author> authorSelector;
-
-    private final VerticalLayout workingSpace;
-    private final Button addNewAuthorButton;
-    private final Button startButton;
-    private final Label fileIsReadyLabel;
+    private final Button hiderForPreparingSpace = new Button();
+    private final VerticalLayout preparingSpace = new VerticalLayout();
+    private final Upload fileUploader = new Upload();
+    private final TextField bookNameField = new TextField();
+    private final ComboBox<Author> authorSelector = new ComboBox<>();
+    private final Button addNewAuthorButton = new Button();
+    private final Button startButton = new Button();
+    private final Label fileIsReadyLabel = new Label();
     private final AuthorEditor authorEditor;
 
-    private final Label resultLabel;
+    private final Button hiderForResultSpace = new Button();
+    private final VerticalLayout resultSpace = new VerticalLayout();
+    private final ClusterVisualizator clusterVisualizator;
+
+
+    private String fileName = "";
 
     private final AuthorRepository authorRepository;
     private final BookRepository bookRepository;
 
     @Autowired
-    public VaadinUI(AuthorRepository authorRepository, BookRepository bookRepository, AuthorEditor authorEditor) {
-        fileUploader = new Upload();
-        workingSpace = new VerticalLayout();
-        bookNameField = new TextField("Название книги");
-        authorSelector = new ComboBox<>("Автор");
-        authorSelector.setItemCaptionGenerator(Author::toString);
-        addNewAuthorButton = new Button("Добавить автора", VaadinIcons.PLUS);
-        startButton = new Button("Старт");
-        startButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-        fileIsReadyLabel = new Label();
-        resultLabel = new Label();
+    public VaadinUI(AuthorRepository authorRepository, ClusterVisualizator clusterVisualizator, BookRepository bookRepository, AuthorEditor authorEditor) {
         this.authorEditor = authorEditor;
+        this.clusterVisualizator = clusterVisualizator;
         this.authorRepository = authorRepository;
         this.bookRepository = bookRepository;
     }
@@ -60,17 +59,18 @@ public class VaadinUI extends UI {
     @Override
     protected void init(VaadinRequest request) {
         VerticalLayout mainLayout = new VerticalLayout();
-        HorizontalLayout bookFields = new HorizontalLayout();
-        HorizontalLayout buttonsLayout = new HorizontalLayout();
-        bookFields.setSpacing(true);
-        buttonsLayout.setSpacing(true);
-        workingSpace.setSpacing(true);
-        mainLayout.setSpacing(true);
+        mainLayout.setMargin(false);
 
-        Button button = new Button("Подготовка");
-        button.addStyleName("hider");
-        button.setWidth(100, Unit.PERCENTAGE);
-        mainLayout.addComponent(button);
+        hiderForPreparingSpace.setCaption("Подготовка");
+        hiderForPreparingSpace.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+        hiderForPreparingSpace.addStyleName("hider");
+        hiderForPreparingSpace.setWidth(100, Unit.PERCENTAGE);
+        hiderForPreparingSpace.setHeight(50 , Unit.PIXELS);
+        hiderForPreparingSpace.addClickListener(clickEvent -> preparingSpace.setVisible(!preparingSpace.isVisible()));
+        mainLayout.addComponent(hiderForPreparingSpace);
+
+        preparingSpace.setMargin(true);
+        preparingSpace.setSpacing(true);
 
         UploadReceiver receiver = new UploadReceiver();
         fileUploader.setReceiver(receiver);
@@ -80,6 +80,7 @@ public class VaadinUI extends UI {
         fileUploader.setImmediateMode(false);
         fileUploader.setButtonCaption("Загрузите текстовый файл");
         fileUploader.addStartedListener(event -> {
+            clusterVisualizator.setVisible(false);
             if (event.getContentLength() == 0) {
                 Notifications.show("Выберите файл", "Для начала загрузки выберите текстовый файл в формате txt (кодировка UTF-8)", Notifications.SMALL_WINDOW);
                 fileName = "";
@@ -89,42 +90,79 @@ public class VaadinUI extends UI {
             }
         });
         fileUploader.addFinishedListener(event -> update());
+        preparingSpace.addComponent(fileUploader);
+
+        HorizontalLayout bookFields = new HorizontalLayout();
+        bookFields.setSpacing(true);
+        bookFields.setMargin(false);
+        bookNameField.setCaption("Название книги");
+        authorSelector.setCaption("Автор");
+        authorSelector.setItemCaptionGenerator(Author::toString);
         bookFields.addComponent(bookNameField);
         bookFields.addComponent(authorSelector);
-        workingSpace.addComponent(bookFields);
+        preparingSpace.addComponent(bookFields);
 
+        HorizontalLayout buttonsLayout = new HorizontalLayout();
+        buttonsLayout.setSpacing(true);
+        buttonsLayout.setMargin(false);
+        addNewAuthorButton.setCaption("Добавить автора");
+        addNewAuthorButton.setIcon(VaadinIcons.PLUS);
+        startButton.setCaption("Старт");
+        startButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
         addNewAuthorButton.addClickListener((Button.ClickListener) event -> authorEditor.editAuthor(new Author()));
         startButton.addClickListener(event -> {
-
-            Book book = new Book();
-            TextAnalyzer analyzer = new TextAnalyzer();
-            try {
-                book.setBookInfo(analyzer.analyze("C:\\Users\\prest\\tmp\\" + fileName));
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (!fileName.isEmpty()) {
+                saveBook();
             }
-            book.setAuthor(authorSelector.getValue());
-            book.setName(bookNameField.getValue());
-            Book book1 = bookRepository.save(book);
-            StringBuilder result = new StringBuilder();
-            for (Double d: book1.getBookInfo()) {
-                result.append(d).append(", ");
-            }
-            resultLabel.setValue(result.toString());
+            List<? extends Cluster<Book>> clusters = clusterBooks();
+            if (clusters != null && !clusters.isEmpty()) clusterVisualizator.visualize(clusters);
         });
+
         buttonsLayout.addComponent(addNewAuthorButton);
         buttonsLayout.addComponent(startButton);
         buttonsLayout.addComponent(fileIsReadyLabel);
-        workingSpace.addComponent(buttonsLayout);
-        workingSpace.addComponent(authorEditor);
-        workingSpace.addComponent(resultLabel);
+        preparingSpace.addComponent(buttonsLayout);
+        preparingSpace.addComponent(authorEditor);
+        mainLayout.addComponent(preparingSpace);
 
-        mainLayout.addComponent(fileUploader);
-        mainLayout.addComponent(workingSpace);
+        hiderForResultSpace.setCaption("Результат");
+        hiderForResultSpace.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+        hiderForResultSpace.addStyleName("hider");
+        hiderForResultSpace.setWidth(100, Unit.PERCENTAGE);
+        hiderForResultSpace.setHeight(50 , Unit.PIXELS);
+        hiderForResultSpace.addClickListener(clickEvent -> resultSpace.setVisible(!resultSpace.isVisible()));
+        mainLayout.addComponent(hiderForResultSpace);
+
+        resultSpace.setMargin(true);
+        resultSpace.setSpacing(true);
+        mainLayout.addComponent(resultSpace);
+
         setContent(mainLayout);
-
-        workingSpace.setVisible(false);
         listAuthors();
+    }
+
+    private List<? extends Cluster<Book>> clusterBooks() {
+        List<Author> authors = authorRepository.findAll();
+        List<Book> books = bookRepository.findAll();
+        if (authors.size() == 0 || books.size() < authors.size()) {
+            Notifications.show("Ошибка кластеризации", "Слишком мало входных параметров для кластеризации", Notifications.SMALL_WINDOW);
+            return null;
+        }
+        KMeansPlusPlusClusterer<Book> clusterer = new KMeansPlusPlusClusterer<>(authors.size());
+        return clusterer.cluster(books);
+    }
+
+    private void saveBook() {
+        Book book = new Book();
+        TextAnalyzer analyzer = new TextAnalyzer();
+        try {
+            book.setBookInfo(analyzer.analyze("C:\\Users\\prest\\tmp\\" + fileName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        book.setAuthor(authorSelector.getValue());
+        book.setName(bookNameField.getValue());
+        bookRepository.save(book);
     }
 
     void listAuthors() {
@@ -134,7 +172,6 @@ public class VaadinUI extends UI {
 
     private void update() {
         fileIsReadyLabel.setValue("Файл " + fileName + " готов к обработке");
-        workingSpace.setVisible(!fileName.isEmpty());
     }
 
     private class UploadReceiver implements Upload.Receiver {
@@ -168,5 +205,4 @@ public class VaadinUI extends UI {
             }
         }
     }
-
 }

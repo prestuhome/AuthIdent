@@ -8,7 +8,7 @@ import com.vaadin.spring.annotation.UIScope;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.prestu.authident.domain.model.entities.Author;
+import ru.prestu.authident.domain.model.Author;
 import ru.prestu.authident.domain.repositories.AuthorRepository;
 
 import java.util.Optional;
@@ -38,6 +38,7 @@ public class AuthorEditor extends VerticalLayout {
 
         binder.bindInstanceFields(this);
 
+        setMargin(false);
         setSpacing(true);
         actions.setStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
         save.setStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -72,13 +73,4 @@ public class AuthorEditor extends VerticalLayout {
         save.focus();
         lastName.selectAll();
     }
-
-    public void setChangeHandler(ChangeHandler h) {
-        save.addClickListener(e -> h.onChange());
-    }
-
-    public interface ChangeHandler {
-        void onChange();
-    }
-
 }

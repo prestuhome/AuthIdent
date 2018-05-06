@@ -1,35 +1,7 @@
 @import "addons.scss";
-@import "authident";
+@import "authident.scss";
 
-.gambler {
-  // Output the actual theme selectors
+.authident {
   @include addons;
   @include authident;
-
-  .hider .v-button {
-    background: #e4e8eb;
-    background-image: -webkit-linear-gradient(top, #e4e8eb, #cbcdcf);
-    background-image: -moz-linear-gradient(top, #e4e8eb, #cbcdcf);
-    background-image: -ms-linear-gradient(top, #e4e8eb, #cbcdcf);
-    background-image: -o-linear-gradient(top, #e4e8eb, #cbcdcf);
-    background-image: linear-gradient(to bottom, #e4e8eb, #cbcdcf);
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0;
-    font-family: Arial, serif;
-    color: #6b6b6b;
-    font-size: 32px;
-    padding: 15px 20px 10px 40px;
-    text-decoration: none;
-  }
-
-  .hider .v-button:hover {
-    background: #bfc4c7;
-    background-image: -webkit-linear-gradient(top, #bfc4c7, #878787);
-    background-image: -moz-linear-gradient(top, #bfc4c7, #878787);
-    background-image: -ms-linear-gradient(top, #bfc4c7, #878787);
-    background-image: -o-linear-gradient(top, #bfc4c7, #878787);
-    background-image: linear-gradient(to bottom, #bfc4c7, #878787);
-    text-decoration: none;
-  }
 }

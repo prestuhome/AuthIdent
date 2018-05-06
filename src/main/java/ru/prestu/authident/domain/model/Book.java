@@ -1,7 +1,6 @@
-package ru.prestu.authident.domain.model.entities;
+package ru.prestu.authident.domain.model;
 
 import org.apache.commons.math3.ml.clustering.Clusterable;
-import ru.prestu.authident.serverside.clustering.statistic.Statistical;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
