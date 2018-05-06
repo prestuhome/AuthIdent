@@ -1,6 +1,7 @@
-package ru.prestu.authident.domain.model;
+package ru.prestu.authident.domain.model.entities;
 
 import org.apache.commons.math3.ml.clustering.Clusterable;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -20,7 +21,8 @@ public class Book implements Clusterable {
     @NotNull
     @Size(max = 1024)
     private String name;
-    @ElementCollection
+    @Column(name = "book_info", columnDefinition="double precision[]")
+    @Type(type = "ru.prestu.authident.domain.model.types.DoubleArrayType")
     private List<Double> bookInfo;
 
     public Book() {
@@ -64,6 +66,7 @@ public class Book implements Clusterable {
     }
 
     @Override
+    @Transient
     public double[] getPoint() {
         double[] points = new double[bookInfo.size()];
         for(int i = 0; i < bookInfo.size(); i++) points[i] = bookInfo.get(i);

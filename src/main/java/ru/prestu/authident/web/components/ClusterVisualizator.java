@@ -1,4 +1,4 @@
-package ru.prestu.authident.web;
+package ru.prestu.authident.web.components;
 
 import com.vaadin.addon.charts.Chart;
 import com.vaadin.addon.charts.model.*;
@@ -9,10 +9,10 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.math3.ml.clustering.CentroidCluster;
 import org.apache.commons.math3.ml.clustering.Cluster;
-import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.prestu.authident.domain.model.Book;
+import ru.prestu.authident.domain.model.entities.Book;
 import ru.prestu.authident.serverside.analyzer.elements.TextCharacteristic;
+import ru.prestu.authident.web.Notifications;
 
 import java.util.List;
 
@@ -33,6 +33,7 @@ public class ClusterVisualizator extends VerticalLayout {
 
         chart = new Chart(ChartType.BUBBLE);
         chart.setSizeFull();
+        chart.setHeight(600, Unit.PIXELS);
 
         HorizontalLayout selectors = new HorizontalLayout();
         selectors.setCaption("Выберете характеристики");
@@ -40,6 +41,7 @@ public class ClusterVisualizator extends VerticalLayout {
         selectors.setSpacing(true);
 
         firstSelector = new ComboBox<>();
+        firstSelector.setWidth(400, Unit.PIXELS);
         firstSelector.setItems(TextCharacteristic.values());
         firstSelector.setItemCaptionGenerator(TextCharacteristic::getDescription);
         firstSelector.setEmptySelectionAllowed(false);
@@ -54,6 +56,7 @@ public class ClusterVisualizator extends VerticalLayout {
         });
 
         secondSelector = new ComboBox<>();
+        secondSelector.setSizeUndefined();
         secondSelector.setItems(TextCharacteristic.values());
         secondSelector.setItemCaptionGenerator(TextCharacteristic::getDescription);
         secondSelector.setEmptySelectionAllowed(false);
@@ -89,8 +92,10 @@ public class ClusterVisualizator extends VerticalLayout {
         yAxis.setTitle(secondCharacteristic.getDescription());
 
         Configuration config = new Configuration();
+        config.setChart(chart.getConfiguration().getChart());
+        config.setTitle((String) null);
         PlotOptionsBubble plotOptionsBubble = new PlotOptionsBubble();
-        plotOptionsBubble.setMinSize("3");
+        plotOptionsBubble.setMinSize("5");
         plotOptionsBubble.setDisplayNegative(false);
         config.setPlotOptions(plotOptionsBubble);
         config.addxAxis(xAxis);
@@ -104,7 +109,7 @@ public class ClusterVisualizator extends VerticalLayout {
                 DataSeriesItem3d item = new DataSeriesItem3d();
                 item.setX(book.getBookInfo().get(firstOrdinal));
                 item.setY(book.getBookInfo().get(secondOrdinal));
-                item.setZ(3);
+                item.setZ(4);
                 item.setName(book.toString());
                 clusterDataSeries.add(item);
             }
@@ -120,5 +125,6 @@ public class ClusterVisualizator extends VerticalLayout {
             config.addSeries(clusterDataSeries);
         }
         chart.setConfiguration(config);
+        chart.drawChart();
     }
 }

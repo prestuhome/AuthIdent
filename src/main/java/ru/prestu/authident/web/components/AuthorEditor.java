@@ -1,4 +1,4 @@
-package ru.prestu.authident.web;
+package ru.prestu.authident.web.components;
 
 import com.vaadin.data.Binder;
 import com.vaadin.event.ShortcutAction;
@@ -8,8 +8,9 @@ import com.vaadin.spring.annotation.UIScope;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.prestu.authident.domain.model.Author;
+import ru.prestu.authident.domain.model.entities.Author;
 import ru.prestu.authident.domain.repositories.AuthorRepository;
+import ru.prestu.authident.web.VaadinUI;
 
 import java.util.Optional;
 

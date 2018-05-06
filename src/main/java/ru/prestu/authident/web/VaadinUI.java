@@ -1,7 +1,5 @@
 package ru.prestu.authident.web;
 
-import com.vaadin.addon.charts.Chart;
-import com.vaadin.addon.charts.model.*;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.icons.VaadinIcons;
@@ -14,11 +12,13 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.prestu.authident.domain.model.Author;
-import ru.prestu.authident.domain.model.Book;
+import ru.prestu.authident.domain.model.entities.Author;
+import ru.prestu.authident.domain.model.entities.Book;
 import ru.prestu.authident.domain.repositories.AuthorRepository;
 import ru.prestu.authident.domain.repositories.BookRepository;
 import ru.prestu.authident.serverside.analyzer.TextAnalyzer;
+import ru.prestu.authident.web.components.AuthorEditor;
+import ru.prestu.authident.web.components.ClusterVisualizator;
 
 import java.io.*;
 import java.util.List;
@@ -116,6 +116,8 @@ public class VaadinUI extends UI {
             }
             List<? extends Cluster<Book>> clusters = clusterBooks();
             if (clusters != null && !clusters.isEmpty()) clusterVisualizator.visualize(clusters);
+            fileName = "";
+            fileIsReadyLabel.setValue("");
         });
 
         buttonsLayout.addComponent(addNewAuthorButton);
@@ -135,6 +137,7 @@ public class VaadinUI extends UI {
 
         resultSpace.setMargin(true);
         resultSpace.setSpacing(true);
+        resultSpace.addComponent(clusterVisualizator);
         mainLayout.addComponent(resultSpace);
 
         setContent(mainLayout);
@@ -165,7 +168,7 @@ public class VaadinUI extends UI {
         bookRepository.save(book);
     }
 
-    void listAuthors() {
+    public void listAuthors() {
         List<Author> authors = authorRepository.findAll();
         authorSelector.setItems(authors);
     }

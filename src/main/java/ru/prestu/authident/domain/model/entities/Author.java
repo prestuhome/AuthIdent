@@ -1,4 +1,4 @@
-package ru.prestu.authident.domain.model;
+package ru.prestu.authident.domain.model.entities;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
