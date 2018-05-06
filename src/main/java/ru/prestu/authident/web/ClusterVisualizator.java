@@ -7,7 +7,9 @@ import com.vaadin.spring.annotation.UIScope;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.math3.ml.clustering.CentroidCluster;
 import org.apache.commons.math3.ml.clustering.Cluster;
+import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.prestu.authident.domain.model.Book;
 import ru.prestu.authident.serverside.analyzer.elements.TextCharacteristic;
@@ -103,7 +105,17 @@ public class ClusterVisualizator extends VerticalLayout {
                 item.setX(book.getBookInfo().get(firstOrdinal));
                 item.setY(book.getBookInfo().get(secondOrdinal));
                 item.setZ(3);
+                item.setName(book.toString());
                 clusterDataSeries.add(item);
+            }
+            if (cluster instanceof CentroidCluster) {
+                double[] centerPoint = ((CentroidCluster<?>) cluster).getCenter().getPoint();
+                DataSeriesItem3d center = new DataSeriesItem3d();
+                center.setX(centerPoint[firstOrdinal]);
+                center.setY(centerPoint[secondOrdinal]);
+                center.setZ(4);
+                center.setName("Центроид");
+                clusterDataSeries.add(center);
             }
             config.addSeries(clusterDataSeries);
         }
