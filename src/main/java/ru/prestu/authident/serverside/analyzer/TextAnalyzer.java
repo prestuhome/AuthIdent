@@ -309,6 +309,7 @@ public class TextAnalyzer {
                 .replaceAll("- ", "— ")
                 .replaceAll("\r\n|\r|\n", "")
                 .replaceAll("– ", "— ")
+                .replaceAll("&#(\\d+);", "")
                 .trim();
     }
 

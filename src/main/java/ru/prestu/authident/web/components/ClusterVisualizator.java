@@ -2,6 +2,8 @@ package ru.prestu.authident.web.components;
 
 import com.vaadin.addon.charts.Chart;
 import com.vaadin.addon.charts.model.*;
+import com.vaadin.addon.charts.model.style.Color;
+import com.vaadin.addon.charts.model.style.SolidColor;
 import com.vaadin.spring.annotation.SpringComponent;
 import com.vaadin.spring.annotation.UIScope;
 import com.vaadin.ui.*;
@@ -128,7 +130,7 @@ public class ClusterVisualizator extends VerticalLayout {
         YAxis yAxis = new YAxis();
         yAxis.setTitle(secondCharacteristic.getDescription());
         Tooltip tooltip = new Tooltip();
-        tooltip.setFormatter("'<b>' + this.series.name + '</b><br/>' + this.point.name");
+        tooltip.setFormatter("'<b>' + this.series.name + '</b><br/>' + this.point.name + '<br/>X:' + this.point.x + '<br/>Y:' + this.point.y");
 
         Configuration config = new Configuration();
         ChartModel model = new ChartModel();
@@ -154,7 +156,7 @@ public class ClusterVisualizator extends VerticalLayout {
             DataSeries clusterDataSeries = new DataSeries();
             clusterDataSeries.setName(clusterOwner.toString());
             for (Book book : books) {
-                DataSeriesItem item = new DataSeriesItem3d();
+                DataSeriesItem item = new DataSeriesItem();
                 item.setX(book.getBookInfo().get(firstOrdinal));
                 item.setY(book.getBookInfo().get(secondOrdinal));
                 item.setName(book.toString());
@@ -168,7 +170,12 @@ public class ClusterVisualizator extends VerticalLayout {
             }
             if (cluster instanceof CentroidCluster) {
                 double[] centerPoint = ((CentroidCluster<?>) cluster).getCenter().getPoint();
-                DataSeriesItem center = new DataSeriesItem3d();
+                DataSeriesItem center = new DataSeriesItem();
+                Marker marker = new Marker(true);
+                marker.setRadius(5);
+                marker.setLineWidth(2);
+                marker.setLineColor(SolidColor.BLACK);
+                center.setMarker(marker);
                 center.setX(centerPoint[firstOrdinal]);
                 center.setY(centerPoint[secondOrdinal]);
                 center.setName("Центроид кластера");
