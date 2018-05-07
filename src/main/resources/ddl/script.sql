@@ -20,16 +20,3 @@ create table books
     on delete set null,
   book_info double precision []
 );
-
-create table book_book_info
-(
-  id        bigserial        not null
-    constraint book_book_info_pkey
-    primary key,
-  book_id   bigint           not null
-    constraint book_book_info_books_id_fk
-    references books
-    on update cascade on delete cascade,
-  book_info double precision not null
-);
-

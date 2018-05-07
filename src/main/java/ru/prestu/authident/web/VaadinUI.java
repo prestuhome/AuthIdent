@@ -21,6 +21,7 @@ import ru.prestu.authident.web.components.AuthorEditor;
 import ru.prestu.authident.web.components.ClusterVisualizator;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @SpringUI
@@ -28,25 +29,25 @@ import java.util.List;
 @Title("AuthIdent")
 public class VaadinUI extends UI {
 
-    private final Button hiderForPreparingSpace = new Button();
-    private final VerticalLayout preparingSpace = new VerticalLayout();
-    private final Upload fileUploader = new Upload();
-    private final TextField bookNameField = new TextField();
-    private final ComboBox<Author> authorSelector = new ComboBox<>();
-    private final Button addNewAuthorButton = new Button();
-    private final Button startButton = new Button();
-    private final Label fileIsReadyLabel = new Label();
-    private final AuthorEditor authorEditor;
+    private Button hiderForPreparingSpace = new Button();
+    private VerticalLayout preparingSpace = new VerticalLayout();
+    private Upload fileUploader = new Upload();
+    private HorizontalLayout bookFields = new HorizontalLayout();
+    private TextField bookNameField = new TextField();
+    private ComboBox<Author> authorSelector = new ComboBox<>();
+    private Button addNewAuthorButton = new Button();
+    private Button startButton = new Button();
+    private Label fileIsReadyLabel = new Label();
+    private AuthorEditor authorEditor;
 
-    private final Button hiderForResultSpace = new Button();
-    private final VerticalLayout resultSpace = new VerticalLayout();
-    private final ClusterVisualizator clusterVisualizator;
-
+    private Button hiderForResultSpace = new Button();
+    private VerticalLayout resultSpace = new VerticalLayout();
+    private ClusterVisualizator clusterVisualizator;
 
     private String fileName = "";
 
-    private final AuthorRepository authorRepository;
-    private final BookRepository bookRepository;
+    private AuthorRepository authorRepository;
+    private BookRepository bookRepository;
 
     @Autowired
     public VaadinUI(AuthorRepository authorRepository, ClusterVisualizator clusterVisualizator, BookRepository bookRepository, AuthorEditor authorEditor) {
@@ -92,7 +93,6 @@ public class VaadinUI extends UI {
         fileUploader.addFinishedListener(event -> update());
         preparingSpace.addComponent(fileUploader);
 
-        HorizontalLayout bookFields = new HorizontalLayout();
         bookFields.setSpacing(true);
         bookFields.setMargin(false);
         bookNameField.setCaption("Название книги");
@@ -142,17 +142,27 @@ public class VaadinUI extends UI {
 
         setContent(mainLayout);
         listAuthors();
+        update();
     }
 
     private List<? extends Cluster<Book>> clusterBooks() {
-        List<Author> authors = authorRepository.findAll();
         List<Book> books = bookRepository.findAll();
-        if (authors.size() == 0 || books.size() < authors.size()) {
+        int authorsCount = countAuthors(books);
+        if (authorsCount == 0 || books.size() < authorsCount) {
             Notifications.show("Ошибка кластеризации", "Слишком мало входных параметров для кластеризации", Notifications.SMALL_WINDOW);
             return null;
         }
-        KMeansPlusPlusClusterer<Book> clusterer = new KMeansPlusPlusClusterer<>(authors.size());
+        KMeansPlusPlusClusterer<Book> clusterer = new KMeansPlusPlusClusterer<>(authorsCount);
         return clusterer.cluster(books);
+    }
+
+    private int countAuthors(List<Book> books) {
+        List<Author> authors = new ArrayList<>();
+        books.forEach(book -> {
+            Author author = book.getAuthor();
+            if (author != null && !authors.contains(author)) authors.add(author);
+        });
+        return authors.size();
     }
 
     private void saveBook() {
@@ -174,7 +184,12 @@ public class VaadinUI extends UI {
     }
 
     private void update() {
-        fileIsReadyLabel.setValue("Файл " + fileName + " готов к обработке");
+        bookFields.setVisible(!fileName.isEmpty());
+        if (fileName.isEmpty()) {
+            fileIsReadyLabel.setValue("");
+        } else {
+            fileIsReadyLabel.setValue("Файл " + fileName + " готов к обработке");
+        }
     }
 
     private class UploadReceiver implements Upload.Receiver {
