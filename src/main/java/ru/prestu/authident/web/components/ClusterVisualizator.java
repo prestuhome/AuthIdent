@@ -26,6 +26,7 @@ import java.util.*;
 public class ClusterVisualizator extends VerticalLayout {
 
     private ComboBox<Distances> distanceSelector;
+    private CheckBoxGroup<TextCharacteristic> characteristicsSelector;
     private Chart chart;
     private ComboBox<TextCharacteristic> xSelector;
     private ComboBox<TextCharacteristic> ySelector;
@@ -58,6 +59,34 @@ public class ClusterVisualizator extends VerticalLayout {
         distanceSelector.setValue(Distances.EUCLIDEAN_DISTANCE);
         distanceSelector.addValueChangeListener(valueChangeEvent -> cluster());
 
+        characteristicsSelector = new CheckBoxGroup<>("Выберите характеристики", Arrays.asList(TextCharacteristic.values()));
+        characteristicsSelector.setItemCaptionGenerator(TextCharacteristic::getDescription);
+        characteristicsSelector.select(TextCharacteristic.values());
+        characteristicsSelector.addValueChangeListener(event -> {
+            Set<TextCharacteristic> textCharacteristics = characteristicsSelector.getValue();
+            if (textCharacteristics.size() < 2) {
+                characteristicsSelector.setValue(event.getOldValue());
+                return;
+            }
+            xSelector.setItems(textCharacteristics);
+            ySelector.setItems(textCharacteristics);
+            zSelector.setItems(textCharacteristics);
+            int i = 0;
+            for (Iterator<TextCharacteristic> it = textCharacteristics.iterator(); it.hasNext();) {
+                if (i == 0) {
+                    xSelector.setValue(it.next());
+                    i++;
+                } else if (i == 1) {
+                    ySelector.setValue(it.next());
+                    i++;
+                } else {
+                    zSelector.setValue(null);
+                    break;
+                }
+            }
+            cluster();
+        });
+
         chart = new Chart(ChartType.SCATTER);
         chart.setSizeFull();
         chart.setHeight(600, Unit.PIXELS);
@@ -76,7 +105,7 @@ public class ClusterVisualizator extends VerticalLayout {
            if (xSelector.getValue().equals(ySelector.getValue()) || xSelector.getValue().equals(zSelector.getValue())) {
                Notifications.show("Ошибка", "Нельзя выбирать одинаковые характеристики", Notifications.SMALL_WINDOW);
                xSelector.setValue(valueChangeEvent.getOldValue());
-           } else {
+           } else if (ySelector.getValue() != null) {
                visualize();
            }
         });
@@ -90,7 +119,7 @@ public class ClusterVisualizator extends VerticalLayout {
             if (ySelector.getValue().equals(xSelector.getValue()) || ySelector.getValue().equals(zSelector.getValue())) {
                 Notifications.show("Ошибка", "Нельзя выбирать одинаковые характеристики", Notifications.SMALL_WINDOW);
                 ySelector.setValue(valueChangeEvent.getOldValue());
-            } else {
+            } else if (xSelector.getValue() != null) {
                 visualize();
             }
         });
@@ -143,7 +172,7 @@ public class ClusterVisualizator extends VerticalLayout {
         });
         authorVerificationLayout.addComponents(authorVerificationLabel, confirmButton, rejectButton);
 
-        addComponents(distanceSelector, chart, xySelectors, zSelector, checkBoxes, accuracyLabel, authorVerificationLayout);
+        addComponents(distanceSelector, characteristicsSelector, chart, xySelectors, zSelector, checkBoxes, accuracyLabel, authorVerificationLayout);
         setVisible(false);
     }
 
@@ -155,7 +184,12 @@ public class ClusterVisualizator extends VerticalLayout {
     }
 
     private List<Cluster> clusterBooks(List<Book> books) {
-        FuzzyCMeansClustering clustering = new FuzzyCMeansClustering(distanceSelector.getValue().getDistance(), useNormBox.getValue());
+        int[] characteristicOrdinals = new int[characteristicsSelector.getValue().size()];
+        int i = 0;
+        for (TextCharacteristic characteristic : characteristicsSelector.getValue()) {
+            characteristicOrdinals[i++] = characteristic.ordinal();
+        }
+        FuzzyCMeansClustering clustering = new FuzzyCMeansClustering(distanceSelector.getValue().getDistance(), useNormBox.getValue(), characteristicOrdinals);
         return clustering.cluster(books);
     }
 

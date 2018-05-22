@@ -15,15 +15,18 @@ public class FuzzyCMeansClustering {
 
     private DistanceMeasure distance;
     private boolean useNorm;
+    private int[] characteristicOrdinals;
 
-    public FuzzyCMeansClustering(DistanceMeasure distance, boolean useNorm) {
+    public FuzzyCMeansClustering(DistanceMeasure distance, boolean useNorm, int[] characteristicOrdinals) {
         this.distance = distance;
         this.useNorm = useNorm;
+        this.characteristicOrdinals = characteristicOrdinals;
     }
 
     public List<Cluster> cluster(List<Book> books) {
         List<Element> elements = getElementsFromBooks(books);
         List<Cluster> clusters = getExactClusters(elements);
+        if (elementWithUnknownAuthor != null) elements.remove(elementWithUnknownAuthor);
 
         System.out.println(distance.getClass().getSimpleName() + ":");
         double scatterCriterion = calculateScatterCriterion(clusters);
@@ -76,8 +79,20 @@ public class FuzzyCMeansClustering {
         double scatterCriterion = 0;
         for (Cluster cluster : clusters) {
             for (Element element : cluster.getElements()) {
-                if (useNorm) scatterCriterion += distance.measure(new DenseInstance(element.getNormPoint()), new DenseInstance(cluster.getNormCenter()));
-                else scatterCriterion += distance.measure(new DenseInstance(element.getPoint()), new DenseInstance(cluster.getCenter()));
+                double[] point = new double[characteristicOrdinals.length];
+                double[] center = new double[characteristicOrdinals.length];
+                if (useNorm) {
+                    for (int i = 0; i < characteristicOrdinals.length; i++) {
+                        point[i] = element.getNormPoint()[characteristicOrdinals[i]];
+                        center[i] = cluster.getNormCenter()[characteristicOrdinals[i]];
+                    }
+                } else {
+                    for (int i = 0; i < characteristicOrdinals.length; i++) {
+                        point[i] = element.getPoint()[characteristicOrdinals[i]];
+                        center[i] = cluster.getCenter()[characteristicOrdinals[i]];
+                    }
+                }
+                scatterCriterion += distance.measure(new DenseInstance(point), new DenseInstance(center));
             }
         }
         return scatterCriterion;
