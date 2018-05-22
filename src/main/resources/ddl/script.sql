@@ -14,6 +14,7 @@ create table books
     constraint books_pkey
     primary key,
   name      varchar(1024) default '' :: character varying not null,
+  file_name      varchar(1024) default '' :: character varying not null,
   author_id bigint
     constraint books_authors_id_fk
     references authors

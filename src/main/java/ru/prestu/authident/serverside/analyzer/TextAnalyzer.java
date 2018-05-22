@@ -167,8 +167,9 @@ public class TextAnalyzer {
 
         Files.lines(Paths.get(path), StandardCharsets.UTF_8).forEach(
                 paragraphText -> {
-                    if (paragraphText.isEmpty()) return;
+                    if (paragraphText.isEmpty() || paragraphText.charAt(0) == '*') return;
                     Paragraph paragraph = getParagraph(paragraphText);
+                    if (paragraph == null) return;
                     if (paragraph.getLength() == 1) {
                         Sentence sentence = paragraph.getSentences().get(0);
                         if (sentence.getType().equals(SentenceType.UNDEFINED) ||
@@ -185,12 +186,14 @@ public class TextAnalyzer {
         Paragraph paragraph = new Paragraph();
 
         paragraphText = normalize(paragraphText);
+        if (paragraphText.isEmpty()) return null;
         paragraph.setText(paragraphText);
 
         List<Sentence> sentences = new ArrayList<>();
         boolean isDirectOrationParagraph = false;
         Pattern pattern = Pattern.compile("[?!.]\\s([А-ЯA-Z]|([«\"][А-ЯA-Z]))");
         Matcher matcher;
+        if (paragraphText.charAt(0) == ' ') paragraphText = paragraphText.substring(1);
         while (!paragraphText.isEmpty()) {
             boolean isStartOfReplica = isStartOfReplica(paragraphText);
             isDirectOrationParagraph = isDirectOrationParagraph || isStartOfReplica;
@@ -298,23 +301,30 @@ public class TextAnalyzer {
         byte[] b = buf.array();
         text = new String(b);
         return text.replaceAll("- ", "— ")
+                .replaceAll("-- ", "— ")
                 .replaceAll("\\?(\\.+)", "?")
                 .replaceAll("!(\\.+)", "!")
                 .replaceAll("\\[.+]", "")
                 .replaceAll("…", "...")
                 .replaceAll(" ", " ")
                 .replaceAll("– ", "— ")
+                .replaceAll("–– ", "— ")
                 .replaceAll("\uFEFF– ", "— ")
                 .replaceAll("\uFEFF- ", "— ")
                 .replaceAll("- ", "— ")
+                .replaceAll("-- ", "— ")
                 .replaceAll("\r\n|\r|\n", "")
                 .replaceAll("– ", "— ")
+                .replaceAll("–– ", "— ")
                 .replaceAll("&#(\\d+);", "")
+                .replaceAll("«", "\"")
+                .replaceAll("»", "\"")
+                .replaceAll("''", "\"")
                 .trim();
     }
 
     private boolean isStartOfReplica(String text) {
-        return text.indexOf("— ") == 0;
+        return text.indexOf("— ") == 0 || text.charAt(0) == '\"';
     }
 
 }

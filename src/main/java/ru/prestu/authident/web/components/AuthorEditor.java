@@ -10,7 +10,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.prestu.authident.domain.model.entities.Author;
 import ru.prestu.authident.domain.repositories.AuthorRepository;
-import ru.prestu.authident.web.VaadinUI;
+import ru.prestu.authident.web.ApplicationUI;
 
 import java.util.Optional;
 
@@ -47,7 +47,7 @@ public class AuthorEditor extends VerticalLayout {
 
         save.addClickListener(e -> {
             repository.save(author);
-            ((VaadinUI) UI.getCurrent()).listAuthors();
+            ((ApplicationUI) UI.getCurrent()).listAuthors();
             AuthorEditor.this.setVisible(false);
         });
         cancel.addClickListener(e -> AuthorEditor.this.setVisible(false));

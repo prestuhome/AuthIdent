@@ -1,4 +1,4 @@
-package ru.prestu.authident.serverside.analyzer.elements;
+package ru.prestu.authident.domain.model.enums;
 
 public enum TextCharacteristic {
 

@@ -9,8 +9,6 @@ import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.math3.ml.clustering.Cluster;
-import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.prestu.authident.domain.model.entities.Author;
 import ru.prestu.authident.domain.model.entities.Book;
@@ -21,13 +19,12 @@ import ru.prestu.authident.web.components.AuthorEditor;
 import ru.prestu.authident.web.components.ClusterVisualizator;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @SpringUI
 @Theme("authident")
 @Title("AuthIdent")
-public class VaadinUI extends UI {
+public class ApplicationUI extends UI {
 
     private Button hiderForPreparingSpace = new Button();
     private VerticalLayout preparingSpace = new VerticalLayout();
@@ -37,6 +34,7 @@ public class VaadinUI extends UI {
     private ComboBox<Author> authorSelector = new ComboBox<>();
     private Button addNewAuthorButton = new Button();
     private Button startButton = new Button();
+    private Button analyzeAllButton = new Button();
     private Label fileIsReadyLabel = new Label();
     private AuthorEditor authorEditor;
 
@@ -50,7 +48,7 @@ public class VaadinUI extends UI {
     private BookRepository bookRepository;
 
     @Autowired
-    public VaadinUI(AuthorRepository authorRepository, ClusterVisualizator clusterVisualizator, BookRepository bookRepository, AuthorEditor authorEditor) {
+    public ApplicationUI(AuthorRepository authorRepository, ClusterVisualizator clusterVisualizator, BookRepository bookRepository, AuthorEditor authorEditor) {
         this.authorEditor = authorEditor;
         this.clusterVisualizator = clusterVisualizator;
         this.authorRepository = authorRepository;
@@ -109,19 +107,34 @@ public class VaadinUI extends UI {
         addNewAuthorButton.setIcon(VaadinIcons.PLUS);
         startButton.setCaption("Старт");
         startButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-        addNewAuthorButton.addClickListener((Button.ClickListener) event -> authorEditor.editAuthor(new Author()));
+        addNewAuthorButton.addClickListener(event -> authorEditor.editAuthor(new Author()));
         startButton.addClickListener(event -> {
+            bookRepository.deleteAll(bookRepository.findByAuthorIsNull());
             if (!fileName.isEmpty()) {
                 saveBook();
             }
-            List<? extends Cluster<Book>> clusters = clusterBooks();
-            if (clusters != null && !clusters.isEmpty()) clusterVisualizator.visualize(clusters);
             fileName = "";
             fileIsReadyLabel.setValue("");
+            clusterVisualizator.cluster();
+        });
+        analyzeAllButton.setCaption("Переанализировать");
+        analyzeAllButton.addClickListener(event -> {
+            TextAnalyzer analyzer = new TextAnalyzer();
+            List<Book> books = bookRepository.findAll();
+            books.forEach(book -> {
+                try {
+                    book.setBookInfo(analyzer.analyze("C:\\Users\\prest\\tmp\\" + book.getFileName()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                bookRepository.save(book);
+                Notifications.show("Книга переанализирована", "Книга " + book.toString() + " переанализирована", Notifications.SMALL_WINDOW);
+            });
         });
 
         buttonsLayout.addComponent(addNewAuthorButton);
         buttonsLayout.addComponent(startButton);
+        buttonsLayout.addComponents(analyzeAllButton);
         buttonsLayout.addComponent(fileIsReadyLabel);
         preparingSpace.addComponent(buttonsLayout);
         preparingSpace.addComponent(authorEditor);
@@ -145,31 +158,12 @@ public class VaadinUI extends UI {
         update();
     }
 
-    private List<? extends Cluster<Book>> clusterBooks() {
-        List<Book> books = bookRepository.findAll();
-        int authorsCount = countAuthors(books);
-        if (authorsCount == 0 || books.size() < authorsCount) {
-            Notifications.show("Ошибка кластеризации", "Слишком мало входных параметров для кластеризации", Notifications.SMALL_WINDOW);
-            return null;
-        }
-        KMeansPlusPlusClusterer<Book> clusterer = new KMeansPlusPlusClusterer<>(authorsCount);
-        return clusterer.cluster(books);
-    }
-
-    private int countAuthors(List<Book> books) {
-        List<Author> authors = new ArrayList<>();
-        books.forEach(book -> {
-            Author author = book.getAuthor();
-            if (author != null && !authors.contains(author)) authors.add(author);
-        });
-        return authors.size();
-    }
-
     private void saveBook() {
         Book book = new Book();
         TextAnalyzer analyzer = new TextAnalyzer();
         try {
             book.setBookInfo(analyzer.analyze("C:\\Users\\prest\\tmp\\" + fileName));
+            book.setFileName(fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -205,7 +199,7 @@ public class VaadinUI extends UI {
                     file.createNewFile();
                 }
                 outputFile =  new FileOutputStream(file);
-                VaadinUI.this.fileName = (fileName.isEmpty() || !MIMEType.equals("text/plain")) ? "" : fileName;
+                ApplicationUI.this.fileName = (fileName.isEmpty() || !MIMEType.equals("text/plain")) ? "" : fileName;
             } catch (IOException e) {
                 e.printStackTrace();
             }

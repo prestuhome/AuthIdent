@@ -62,6 +62,7 @@ public class DoubleArrayType implements UserType {
         return doubleArray;
     }
 
+    @SuppressWarnings("unchecked")
     public Object deepCopy(Object value) throws HibernateException {
         if (value == null)
             return null;

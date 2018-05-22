@@ -1,6 +1,5 @@
 package ru.prestu.authident.domain.model.entities;
 
-import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -11,7 +10,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "books")
-public class Book implements Clusterable {
+public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,21 +20,12 @@ public class Book implements Clusterable {
     @NotNull
     @Size(max = 1024)
     private String name;
+    @NotNull
+    @Size(max = 1024)
+    private String fileName;
     @Column(name = "book_info", columnDefinition="double precision[]")
     @Type(type = "ru.prestu.authident.domain.model.types.DoubleArrayType")
     private List<Double> bookInfo;
-
-    public Book() {
-    }
-
-    public Book(String name) {
-        this.name = name;
-    }
-
-    public Book(Author author, String name) {
-        this.author = author;
-        this.name = name;
-    }
 
     public Long getId() {
         return id;
@@ -57,6 +47,14 @@ public class Book implements Clusterable {
         this.name = name;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
     public List<Double> getBookInfo() {
         return bookInfo;
     }
@@ -65,7 +63,6 @@ public class Book implements Clusterable {
         this.bookInfo = bookInfo;
     }
 
-    @Override
     @Transient
     public double[] getPoint() {
         double[] points = new double[bookInfo.size()];
