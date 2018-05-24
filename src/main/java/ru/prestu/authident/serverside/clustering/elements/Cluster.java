@@ -1,6 +1,8 @@
 package ru.prestu.authident.serverside.clustering.elements;
 
+import net.sf.javaml.core.DenseInstance;
 import ru.prestu.authident.domain.model.entities.Author;
+import ru.prestu.authident.domain.model.enums.Distances;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +11,9 @@ public class Cluster {
 
     private List<Element> elements = new ArrayList<>();
     private double[] center = new double[20];
+    private double maxDist;
     private double[] normCenter = new double[20];
+    private double maxNormDist;
     private Author author;
 
     public List<Element> getElements() {
@@ -25,8 +29,16 @@ public class Cluster {
         return center;
     }
 
+    public double getMaxDist() {
+        return maxDist;
+    }
+
     public double[] getNormCenter() {
         return normCenter;
+    }
+
+    public double getMaxNormDist() {
+        return maxNormDist;
     }
 
     public Author getAuthor() {
@@ -40,11 +52,13 @@ public class Cluster {
     public void addElement(Element element) {
         elements.add(element);
         calculateCenters();
+        calculateMaxDist();
     }
 
     public void removeElement(Element element) {
         elements.remove(element);
         calculateCenters();
+        calculateMaxDist();
     }
 
     private void calculateCenters() {
@@ -63,6 +77,15 @@ public class Cluster {
         for (int i = 0; i < center.length; i++) {
             center[i] /= elements.size();
             normCenter[i] /= elements.size();
+        }
+    }
+
+    private void calculateMaxDist() {
+        maxDist = 0;
+        maxNormDist = 0;
+        for (Element element : elements) {
+            maxDist = Math.max(maxDist, Distances.EUCLIDEAN_DISTANCE.getDistance().measure(new DenseInstance(center), new DenseInstance(element.getPoint())));
+            maxNormDist = Math.max(maxNormDist, Distances.EUCLIDEAN_DISTANCE.getDistance().measure(new DenseInstance(normCenter), new DenseInstance(element.getNormPoint())));
         }
     }
 }

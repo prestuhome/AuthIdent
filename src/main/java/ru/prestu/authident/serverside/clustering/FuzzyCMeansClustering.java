@@ -28,40 +28,40 @@ public class FuzzyCMeansClustering {
         List<Cluster> clusters = getExactClusters(elements);
         if (elementWithUnknownAuthor != null) elements.remove(elementWithUnknownAuthor);
 
-        System.out.println(distance.getClass().getSimpleName() + ":");
-        double scatterCriterion = calculateScatterCriterion(clusters);
-        System.out.println(scatterCriterion);
         double newScatterCriterion;
-        for (Element element : elements) {
-            Cluster oldCluster = clusters.stream().filter(c -> c.getElements().contains(element)).findFirst().get();
-            for (int j = 0; j < clusters.size(); j++) {
-                Cluster cluster = clusters.get(j);
-                if (cluster.equals(oldCluster)) continue;
-                oldCluster.removeElement(element);
-                cluster.addElement(element);
-                newScatterCriterion = calculateScatterCriterion(clusters);
-                if (newScatterCriterion < scatterCriterion) {
-                    scatterCriterion = newScatterCriterion;
-                    System.out.println(scatterCriterion);
-                    oldCluster = cluster;
-                } else {
-                    oldCluster.addElement(element);
-                    cluster.removeElement(element);
+        if (elementWithUnknownAuthor == null) {
+            System.out.println(distance.getClass().getSimpleName() + ":");
+            double scatterCriterion = calculateScatterCriterion(clusters);
+            System.out.println(scatterCriterion);
+            for (Element element : elements) {
+                Cluster oldCluster = clusters.stream().filter(c -> c.getElements().contains(element)).findFirst().get();
+                for (int j = 0; j < clusters.size(); j++) {
+                    Cluster cluster = clusters.get(j);
+                    if (cluster.equals(oldCluster)) continue;
+                    oldCluster.removeElement(element);
+                    cluster.addElement(element);
+                    newScatterCriterion = calculateScatterCriterion(clusters);
+                    if (newScatterCriterion < scatterCriterion) {
+                        scatterCriterion = newScatterCriterion;
+                        System.out.println(scatterCriterion);
+                        oldCluster = cluster;
+                    } else {
+                        oldCluster.addElement(element);
+                        cluster.removeElement(element);
+                    }
                 }
             }
-        }
-
-        if (elementWithUnknownAuthor != null) {
+        } else {
             Cluster oldCluster = clusters.get(0);
             oldCluster.addElement(elementWithUnknownAuthor);
-            scatterCriterion = calculateScatterCriterion(clusters);
+            double scatterCriterion = calculateScatterCriterion(clusters);
             for (int j = 1; j < clusters.size(); j++) {
                 Cluster cluster = clusters.get(j);
                 if (cluster.equals(oldCluster)) continue;
                 oldCluster.removeElement(elementWithUnknownAuthor);
                 cluster.addElement(elementWithUnknownAuthor);
                 newScatterCriterion = calculateScatterCriterion(clusters);
-                if (newScatterCriterion < scatterCriterion) {
+                if (newScatterCriterion < scatterCriterion && !cluster.getElements().isEmpty()) {
                     scatterCriterion = newScatterCriterion;
                     System.out.println(scatterCriterion);
                     oldCluster = cluster;
@@ -71,7 +71,6 @@ public class FuzzyCMeansClustering {
                 }
             }
         }
-
         return clusters;
     }
 

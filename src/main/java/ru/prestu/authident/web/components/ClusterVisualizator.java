@@ -64,7 +64,7 @@ public class ClusterVisualizator extends VerticalLayout {
         characteristicsSelector.select(TextCharacteristic.values());
         characteristicsSelector.addValueChangeListener(event -> {
             Set<TextCharacteristic> textCharacteristics = characteristicsSelector.getValue();
-            if (textCharacteristics.size() < 2) {
+            if (textCharacteristics.size() < 3) {
                 characteristicsSelector.setValue(event.getOldValue());
                 return;
             }
@@ -189,6 +189,7 @@ public class ClusterVisualizator extends VerticalLayout {
         for (TextCharacteristic characteristic : characteristicsSelector.getValue()) {
             characteristicOrdinals[i++] = characteristic.ordinal();
         }
+        Arrays.sort(characteristicOrdinals);
         FuzzyCMeansClustering clustering = new FuzzyCMeansClustering(distanceSelector.getValue().getDistance(), useNormBox.getValue(), characteristicOrdinals);
         return clustering.cluster(books);
     }
@@ -217,7 +218,10 @@ public class ClusterVisualizator extends VerticalLayout {
                 } else if (element.getBook().getAuthor().equals(clusterOwner)) booksInRightClusterCounter++;
             }
         }
-        accuracyLabel.setValue("Точность кластеризации: " + format.format(((double) booksInRightClusterCounter) * 100 / booksCounter) + "%");
+        double accuracy = (double) booksInRightClusterCounter * 100 / booksCounter;
+        if (accuracy != 100) {
+            accuracyLabel.setValue("Точность кластеризации: " + format.format(accuracy) + "%");
+        }
         visualize();
     }
 
@@ -248,7 +252,11 @@ public class ClusterVisualizator extends VerticalLayout {
         Configuration config = new Configuration();
         ChartModel model = new ChartModel();
         model.setZoomType(ZoomType.XY);
-        model.setType(ChartType.SCATTER);
+        if (showCenters.getValue()) {
+            model.setType(ChartType.LINE);
+        } else {
+            model.setType(ChartType.SCATTER);
+        }
         config.setChart(model);
         config.setTitle((String) null);
         config.addxAxis(xAxis);
@@ -257,36 +265,52 @@ public class ClusterVisualizator extends VerticalLayout {
 
         int xOrdinal = xCharacteristic.ordinal();
         int yOrdinal = yCharacteristic.ordinal();
+
         for (Cluster cluster : clusters) {
             Author clusterOwner = cluster.getAuthor();
             DataSeries clusterDataSeries = new DataSeries();
             clusterDataSeries.setName(clusterOwner.toString());
-            for (Element element : cluster.getElements()) {
-                double[] point = useNormBox.getValue() ? element.getNormPoint() : element.getPoint();
-                DataSeriesItem item = new DataSeriesItem();
-                item.setX(point[xOrdinal]);
-                item.setY(point[yOrdinal]);
-                item.setName(element.getBook().toString());
-                clusterDataSeries.add(item);
-                if (element.getBook().getAuthor() == null) {
-                    bookWithNullAuthor = element.getBook();
-                    prospectiveAuthor = clusterOwner;
-                    authorVerificationLabel.setValue("Предполагаемый автор книги " + bookWithNullAuthor + " " + prospectiveAuthor);
-                    authorVerificationLayout.setVisible(true);
+            if (!showCenters.getValue()) {
+                for (Element element : cluster.getElements()) {
+                    double[] point = useNormBox.getValue() ? element.getNormPoint() : element.getPoint();
+                    DataSeriesItem item = new DataSeriesItem();
+                    item.setX(point[xOrdinal]);
+                    item.setY(point[yOrdinal]);
+                    item.setName(element.getBook().toString());
+                    clusterDataSeries.add(item);
+                    if (element.getBook().getAuthor() == null) {
+                        bookWithNullAuthor = element.getBook();
+                        prospectiveAuthor = clusterOwner;
+                        authorVerificationLabel.setValue("Предполагаемый автор книги " + bookWithNullAuthor + " " + prospectiveAuthor);
+                        authorVerificationLayout.setVisible(true);
+                    }
                 }
-            }
-            if (showCenters.getValue()) {
+            } else {
                 double[] centerPoint = useNormBox.getValue() ? cluster.getNormCenter() : cluster.getCenter();
-                DataSeriesItem center = new DataSeriesItem();
-                Marker marker = new Marker(true);
-                marker.setRadius(5);
-                marker.setLineWidth(2);
-                marker.setLineColor(SolidColor.BLACK);
-                center.setMarker(marker);
-                center.setX(centerPoint[xOrdinal]);
-                center.setY(centerPoint[yOrdinal]);
-                center.setName("Центроид кластера");
-                clusterDataSeries.add(center);
+                for (Element element : cluster.getElements()) {
+                    double[] point = useNormBox.getValue() ? element.getNormPoint() : element.getPoint();
+                    DataSeriesItem item = new DataSeriesItem();
+                    item.setX(point[xOrdinal]);
+                    item.setY(point[yOrdinal]);
+                    item.setName(element.getBook().toString());
+                    clusterDataSeries.add(item);
+                    if (element.getBook().getAuthor() == null) {
+                        bookWithNullAuthor = element.getBook();
+                        prospectiveAuthor = clusterOwner;
+                        authorVerificationLabel.setValue("Предполагаемый автор книги " + bookWithNullAuthor + " " + prospectiveAuthor);
+                        authorVerificationLayout.setVisible(true);
+                    }
+                    DataSeriesItem center = new DataSeriesItem();
+                    Marker marker = new Marker(true);
+                    marker.setRadius(5);
+                    marker.setLineWidth(2);
+                    marker.setLineColor(SolidColor.BLACK);
+                    center.setMarker(marker);
+                    center.setX(centerPoint[xOrdinal]);
+                    center.setY(centerPoint[yOrdinal]);
+                    center.setName("Центроид кластера");
+                    clusterDataSeries.add(center);
+                }
             }
             config.addSeries(clusterDataSeries);
         }
